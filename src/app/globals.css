@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #3D2B1F;
+  --color-secondary: #C4956A;
+  --color-accent: #E8C9A0;
+  --color-text: #2C1A0E;
+  --color-background: #FAF6F0;
+  --color-surface: #F0E6D6;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: #3D2B1F;
+  --color-secondary: #C4956A;
+  --color-accent: #E8C9A0;
+  --color-camelia-text: #2C1A0E;
+  --color-background: #FAF6F0;
+  --color-surface: #F0E6D6;
+  --font-heading: var(--font-cormorant);
+  --font-body: var(--font-dm-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-cormorant, 'Cormorant Garamond', serif);
+}
+
+/* Gallery auto-scroll animations */
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes scroll-right {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+
+.gallery-track-left {
+  animation: scroll-left 35s linear infinite;
+}
+
+.gallery-track-right {
+  animation: scroll-right 35s linear infinite;
+}
+
+.gallery-strip:hover .gallery-track-left,
+.gallery-strip:hover .gallery-track-right {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-track-left,
+  .gallery-track-right {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
