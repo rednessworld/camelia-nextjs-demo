@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   ReactNode,
-  TouchEvent,
   WheelEvent,
 } from 'react';
 import Image from 'next/image';
@@ -39,9 +38,11 @@ const ScrollExpandMedia = ({
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const [showContent, setShowContent] = useState<boolean>(false);
   const [mediaFullyExpanded, setMediaFullyExpanded] = useState<boolean>(false);
-  const [touchStartY, setTouchStartY] = useState<number>(0);
   const [isMobileState, setIsMobileState] = useState<boolean>(false);
+  const [windowWidth, setWindowWidth] = useState<number>(0);
 
+  // Use ref for touchStartY to avoid stale closure in touch handlers
+  const touchStartYRef = useRef<number>(0);
   const sectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -83,14 +84,16 @@ const ScrollExpandMedia = ({
       }
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      setTouchStartY(e.touches[0].clientY);
+    const handleTouchStart = (e: Event) => {
+      const touch = (e as globalThis.TouchEvent).touches[0];
+      touchStartYRef.current = touch.clientY;
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!touchStartY) return;
-      const touchY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchY;
+    const handleTouchMove = (e: Event) => {
+      const te = e as globalThis.TouchEvent;
+      if (!touchStartYRef.current) return;
+      const touchY = te.touches[0].clientY;
+      const deltaY = touchStartYRef.current - touchY;
       if (mediaFullyExpanded && deltaY < -20 && window.scrollY <= 5) {
         setMediaFullyExpanded(false);
         e.preventDefault();
@@ -109,12 +112,12 @@ const ScrollExpandMedia = ({
         } else if (newProgress < 0.75) {
           setShowContent(false);
         }
-        setTouchStartY(touchY);
+        touchStartYRef.current = touchY;
       }
     };
 
     const handleTouchEnd = (): void => {
-      setTouchStartY(0);
+      touchStartYRef.current = 0;
     };
 
     const handleScroll = (): void => {
@@ -136,25 +139,28 @@ const ScrollExpandMedia = ({
       window.removeEventListener('touchmove', handleTouchMove as unknown as EventListener);
       window.removeEventListener('touchend', handleTouchEnd as EventListener);
     };
-  }, [scrollProgress, mediaFullyExpanded, touchStartY]);
+  }, [scrollProgress, mediaFullyExpanded]);
 
   useEffect(() => {
     const checkIfMobile = (): void => {
       setIsMobileState(window.innerWidth < 768);
+      setWindowWidth(window.innerWidth);
     };
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  const mediaWidth = 450 + scrollProgress * (isMobileState ? 400 : 750);
-  const mediaHeight = 500 + scrollProgress * (isMobileState ? 150 : 175);
+  const mediaWidth = isMobileState
+    ? Math.min(windowWidth * 0.88, 550) + scrollProgress * 300
+    : 450 + scrollProgress * 750;
+  const mediaHeight = isMobileState ? 480 + scrollProgress * 150 : 500 + scrollProgress * 175;
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
   const firstWord = title ? title.split(' ')[0] : '';
   const restOfTitle = title ? title.split(' ').slice(1).join(' ') : '';
 
   return (
-    <div ref={sectionRef} className="transition-colors duration-700 ease-in-out overflow-hidden">
+    <div ref={sectionRef} className="transition-colors duration-700 ease-in-out">
       <section className="relative flex flex-col items-center justify-start h-[100dvh]">
         <div className="relative w-full flex flex-col items-center h-[100dvh]">
           <div
@@ -162,7 +168,7 @@ const ScrollExpandMedia = ({
             style={{ filter: `blur(${scrollProgress * 12}px)` }}
           >
             <Image src={bgImageSrc} alt="Background" width={1920} height={1080}
-              className="w-screen h-screen" style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
+              className="w-screen h-screen" style={{ objectFit: 'cover', objectPosition: 'center center', display: 'block' }} priority />
             <div
               className="absolute inset-0"
               style={{ background: `rgba(0,0,0,${0.4 + scrollProgress * 0.3})` }}
