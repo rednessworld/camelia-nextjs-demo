@@ -94,24 +94,27 @@ const ScrollExpandMedia = ({
       if (!touchStartYRef.current) return;
       const touchY = te.touches[0].clientY;
       const deltaY = touchStartYRef.current - touchY;
+      // Deadzone — ignore tiny movements
+      if (Math.abs(deltaY) < 3) return;
       if (mediaFullyExpanded && deltaY < -20 && window.scrollY <= 5) {
         setMediaFullyExpanded(false);
         e.preventDefault();
       } else if (!mediaFullyExpanded) {
         e.preventDefault();
-        const scrollFactor = deltaY < 0 ? 0.008 : 0.005;
-        const scrollDelta = deltaY * scrollFactor;
+        const scrollDelta = deltaY * 0.003;
         const newProgress = Math.min(
           Math.max(scrollProgress + scrollDelta, 0),
           1
         );
-        setScrollProgress(newProgress);
-        if (newProgress >= 1) {
-          setMediaFullyExpanded(true);
-          setShowContent(true);
-        } else if (newProgress < 0.75) {
-          setShowContent(false);
-        }
+        requestAnimationFrame(() => {
+          setScrollProgress(newProgress);
+          if (newProgress >= 1) {
+            setMediaFullyExpanded(true);
+            setShowContent(true);
+          } else if (newProgress < 0.75) {
+            setShowContent(false);
+          }
+        });
         touchStartYRef.current = touchY;
       }
     };
@@ -160,7 +163,7 @@ const ScrollExpandMedia = ({
   const restOfTitle = title ? title.split(' ').slice(1).join(' ') : '';
 
   return (
-    <div ref={sectionRef} className="transition-colors duration-700 ease-in-out">
+    <div ref={sectionRef} className="transition-colors duration-700 ease-in-out" style={{ overflowX: 'hidden' }}>
       <section className="relative flex flex-col items-center justify-start h-[100dvh]">
         <div className="relative w-full flex flex-col items-center h-[100dvh]">
           <div
@@ -168,7 +171,7 @@ const ScrollExpandMedia = ({
             style={{ filter: `blur(${scrollProgress * 12}px)` }}
           >
             <Image src={bgImageSrc} alt="Background" width={1920} height={1080}
-              className="w-screen h-screen" style={{ objectFit: 'cover', objectPosition: 'center center', display: 'block' }} priority />
+              className="h-screen" style={{ width: '100%', objectFit: 'cover', objectPosition: '20% center', display: 'block' }} priority />
             <div
               className="absolute inset-0"
               style={{ background: `rgba(0,0,0,${0.4 + scrollProgress * 0.3})` }}
