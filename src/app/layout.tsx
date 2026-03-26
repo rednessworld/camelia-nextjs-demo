@@ -35,7 +35,7 @@ export default function RootLayout({
       lang="es"
       className={`${cormorant.variable} ${dmSans.variable}`}
     >
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased overflow-x-hidden">
         <LanguageProvider>
           <Navbar />
           {children}

@@ -188,7 +188,7 @@ const ScrollExpandMedia = ({
                 transition={{ duration: 0.1 }}
               >
                 <Image src="/images/logo.png" alt="Camelia Art Café logo" width={500} height={300}
-                  style={{ width: '420px', height: 'auto' }} priority />
+                  style={{ width: 'clamp(220px, 80vw, 420px)', height: 'auto' }} priority />
                 <p className="text-[#E8C9A0] italic font-light text-xl mt-4 tracking-widest"
                   style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   {t.hero.tagline}
