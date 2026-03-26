@@ -79,7 +79,7 @@ const ScrollExpandMedia = ({
         e.preventDefault();
       } else if (!mediaFullyExpanded) {
         e.preventDefault();
-        const scrollDelta = e.deltaY * 0.0009;
+        const scrollDelta = e.deltaY * 0.002;
         const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
         setScrollProgress(newProgress);
         if (newProgress >= 1) { setMediaFullyExpanded(true); setShowContent(true); }
@@ -118,13 +118,14 @@ const ScrollExpandMedia = ({
       const deltaY = lastTouchYRef.current - currentY;
       lastTouchYRef.current = currentY;
 
-      velocityRef.current = deltaY * 0.004;
+      velocityRef.current = deltaY * 0.012;
 
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = requestAnimationFrame(() => {
         setScrollProgress(prev => {
           const next = Math.min(Math.max(prev + velocityRef.current, 0), 1);
           if (next >= 1) {
+            mediaFullyExpandedRef.current = true;
             setMediaFullyExpanded(true);
             setShowContent(true);
           } else if (next < 0.75) {
@@ -137,11 +138,12 @@ const ScrollExpandMedia = ({
 
     const handleTouchEnd = () => {
       const decay = () => {
-        velocityRef.current *= 0.85;
+        velocityRef.current *= 0.92;
         if (Math.abs(velocityRef.current) > 0.001 && !mediaFullyExpandedRef.current) {
           setScrollProgress(prev => {
             const next = Math.min(Math.max(prev + velocityRef.current, 0), 1);
             if (next >= 1) {
+              mediaFullyExpandedRef.current = true;
               setMediaFullyExpanded(true);
               setShowContent(true);
             }
