@@ -44,7 +44,7 @@ const ScrollExpandMedia = ({
   const touchStartYRef = useRef<number>(0);
   const lastTouchYRef = useRef<number>(0);
   const velocityRef = useRef<number>(0);
-  const animFrameRef = useRef<number>();
+  const animFrameRef = useRef<number>(0);
   // Keep a ref in sync with mediaFullyExpanded so stable touch handlers can read it
   const mediaFullyExpandedRef = useRef<boolean>(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
