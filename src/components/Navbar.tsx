@@ -49,7 +49,15 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 lg:h-20">
 
           {/* Logo */}
-          <a href="#" className="flex-shrink-0 cursor-pointer" aria-label="Camelia Art Café — inicio">
+          <a
+            href="#"
+            className="flex-shrink-0 cursor-pointer"
+            aria-label="Camelia Art Café — inicio"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.dispatchEvent(new CustomEvent('resetHero'));
+            }}
+          >
             <Image
               src="/images/logo.png"
               alt="Camelia Art Café"

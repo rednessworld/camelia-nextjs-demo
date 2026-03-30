@@ -82,6 +82,30 @@ const ScrollExpandMedia = ({
     return () => window.removeEventListener('hashchange', expandHero);
   }, []);
 
+  useEffect(() => {
+    const handleScrollToTop = () => {
+      if (window.scrollY === 0) {
+        setScrollProgress(0);
+        setMediaFullyExpanded(false);
+        setShowContent(false);
+        mediaFullyExpandedRef.current = false;
+      }
+    };
+    window.addEventListener('scroll', handleScrollToTop);
+    return () => window.removeEventListener('scroll', handleScrollToTop);
+  }, []);
+
+  useEffect(() => {
+    const handleReset = () => {
+      setScrollProgress(0);
+      setMediaFullyExpanded(false);
+      setShowContent(false);
+      mediaFullyExpandedRef.current = false;
+    };
+    window.addEventListener('resetHero', handleReset);
+    return () => window.removeEventListener('resetHero', handleReset);
+  }, []);
+
   // Wheel handler — re-registers when scrollProgress or mediaFullyExpanded changes (desktop only)
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
