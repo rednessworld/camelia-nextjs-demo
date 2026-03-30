@@ -21,13 +21,23 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Image
-              src="/images/logo.png"
-              alt="Camelia Art Café"
-              width={160}
-              height={60}
-              className="h-[140px] w-auto mb-5 brightness-0 invert opacity-80"
-            />
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.dispatchEvent(new CustomEvent('resetHero'));
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              <Image
+                src="/images/logo.png"
+                alt="Camelia Art Café"
+                width={160}
+                height={60}
+                className="h-[140px] w-auto mb-5 brightness-0 invert opacity-80"
+              />
+            </a>
             <p className="text-[#E8C9A0]/50 text-sm leading-relaxed max-w-xs whitespace-pre-line">
               {t.footer.tagline}
             </p>
@@ -44,6 +54,15 @@ export default function Footer() {
                   <a
                     href={link.href}
                     className="text-[#E8C9A0]/50 text-sm hover:text-[#C4956A] cursor-pointer transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (link.href === '#inicio') {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.dispatchEvent(new CustomEvent('resetHero'));
+                      } else {
+                        document.querySelector(link.href)?.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
                   >
                     {link.label}
                   </a>
