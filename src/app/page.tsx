@@ -13,7 +13,7 @@ export default function Home() {
       <ScrollExpandMedia
         mediaType="video"
         mediaSrc="/videos/video7.mp4"
-        bgImageSrc="/images/hero2.png"
+        bgImageSrc="/images/exterior2.png"
         scrollToExpand="Descubre Camelia"
       />
       <AboutSection />

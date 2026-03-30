@@ -206,7 +206,7 @@ const ScrollExpandMedia = ({
             style={{ filter: scrollProgress > 0 ? `blur(${scrollProgress * 10}px)` : 'none' }}
           >
             <Image src={bgImageSrc} alt="Background" width={1920} height={1080}
-              style={{ objectFit: 'cover', objectPosition: '60% center', width: '100%', height: '100%', display: 'block' }} priority />
+              style={{ objectFit: 'cover', objectPosition: 'center center', width: '100%', height: '100%', display: 'block' }} priority />
             <div
               className="absolute inset-0"
               style={{ background: `rgba(0,0,0,${scrollProgress * 0.7})` }}
