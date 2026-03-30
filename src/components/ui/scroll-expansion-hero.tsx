@@ -45,15 +45,14 @@ const ScrollExpandMedia = ({
   const lastTouchYRef = useRef<number>(0);
   const velocityRef = useRef<number>(0);
   const animFrameRef = useRef<number>(0);
-  // targetProgressRef is the destination; scrollProgress lerps toward it each frame
-  const targetProgressRef = useRef<number>(0);
   // Keep a ref in sync with mediaFullyExpanded so stable touch handlers can read it
   const mediaFullyExpandedRef = useRef<boolean>(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
 
-  // Hard reset on mount — ensures no stale state from SSR or previous visit
+  // Hard reset on mount — scroll to top, disable browser scroll restoration
   useEffect(() => {
-    targetProgressRef.current = 0;
+    if (history.scrollRestoration) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
     mediaFullyExpandedRef.current = false;
     setScrollProgress(0);
     setShowContent(false);
@@ -66,7 +65,6 @@ const ScrollExpandMedia = ({
   }, [mediaFullyExpanded]);
 
   useEffect(() => {
-    targetProgressRef.current = 0;
     setScrollProgress(0);
     setShowContent(false);
     setMediaFullyExpanded(false);
@@ -75,7 +73,6 @@ const ScrollExpandMedia = ({
   useEffect(() => {
     const expandHero = () => {
       mediaFullyExpandedRef.current = true;
-      targetProgressRef.current = 1;
       setMediaFullyExpanded(true);
       setScrollProgress(1);
       setShowContent(true);
@@ -85,52 +82,23 @@ const ScrollExpandMedia = ({
     return () => window.removeEventListener('hashchange', expandHero);
   }, []);
 
-  // Continuous lerp animation loop — runs once, smooths scrollProgress toward targetProgressRef
-  useEffect(() => {
-    let rafId: number;
-    const animate = () => {
-      setScrollProgress(prev => {
-        const target = targetProgressRef.current;
-        const diff = target - prev;
-        if (Math.abs(diff) < 0.001) return target;
-        const next = prev + diff * 0.12;
-        if (next >= 1) {
-          if (!mediaFullyExpandedRef.current) {
-            mediaFullyExpandedRef.current = true;
-            setMediaFullyExpanded(true);
-            setShowContent(true);
-          }
-          return 1;
-        } else if (next < 0.75) {
-          setShowContent(false);
-        }
-        return next;
-      });
-      rafId = requestAnimationFrame(animate);
-    };
-    rafId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
-
-  // Wheel handler — deps: [mediaFullyExpanded] only (scrollProgress read via targetProgressRef)
+  // Wheel handler — re-registers when scrollProgress or mediaFullyExpanded changes (desktop only)
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (mediaFullyExpanded && e.deltaY < 0 && window.scrollY <= 5) {
-        // Collapse: reset both ref and target so lerp animates back
-        mediaFullyExpandedRef.current = false;
-        targetProgressRef.current = 0;
         setMediaFullyExpanded(false);
         e.preventDefault();
       } else if (!mediaFullyExpanded) {
         e.preventDefault();
         const scrollDelta = e.deltaY * 0.002;
-        const newTarget = Math.min(Math.max(targetProgressRef.current + scrollDelta, 0), 1);
-        targetProgressRef.current = newTarget;
-        // Mark expanded immediately when target hits 1 (don't wait for lerp to converge)
-        if (newTarget >= 1 && !mediaFullyExpandedRef.current) {
+        const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
+        setScrollProgress(newProgress);
+        if (newProgress >= 1) {
           mediaFullyExpandedRef.current = true;
           setMediaFullyExpanded(true);
           setShowContent(true);
+        } else if (newProgress < 0.75) {
+          setShowContent(false);
         }
       }
     };
@@ -145,7 +113,7 @@ const ScrollExpandMedia = ({
       window.removeEventListener('wheel', handleWheel as unknown as EventListener);
       window.removeEventListener('scroll', handleScroll as EventListener);
     };
-  }, [mediaFullyExpanded]);
+  }, [scrollProgress, mediaFullyExpanded]);
 
   // Touch handlers — registered once, use refs throughout (no stale closures)
   useEffect(() => {
@@ -167,27 +135,36 @@ const ScrollExpandMedia = ({
       lastTouchYRef.current = currentY;
 
       velocityRef.current = deltaY * 0.012;
-      targetProgressRef.current = Math.min(Math.max(targetProgressRef.current + velocityRef.current, 0), 1);
 
-      // Mark expanded immediately when target hits 1 — don't wait for lerp
-      if (targetProgressRef.current >= 1 && !mediaFullyExpandedRef.current) {
-        mediaFullyExpandedRef.current = true;
-        setMediaFullyExpanded(true);
-        setShowContent(true);
-      }
-      // No per-touch rAF needed — the lerp loop handles rendering at 60fps
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = requestAnimationFrame(() => {
+        setScrollProgress(prev => {
+          const next = Math.min(Math.max(prev + velocityRef.current, 0), 1);
+          if (next >= 1) {
+            mediaFullyExpandedRef.current = true;
+            setMediaFullyExpanded(true);
+            setShowContent(true);
+          } else if (next < 0.75) {
+            setShowContent(false);
+          }
+          return next;
+        });
+      });
     };
 
     const handleTouchEnd = () => {
       const decay = () => {
         velocityRef.current *= 0.92;
         if (Math.abs(velocityRef.current) > 0.001 && !mediaFullyExpandedRef.current) {
-          targetProgressRef.current = Math.min(Math.max(targetProgressRef.current + velocityRef.current, 0), 1);
-          if (targetProgressRef.current >= 1 && !mediaFullyExpandedRef.current) {
-            mediaFullyExpandedRef.current = true;
-            setMediaFullyExpanded(true);
-            setShowContent(true);
-          }
+          setScrollProgress(prev => {
+            const next = Math.min(Math.max(prev + velocityRef.current, 0), 1);
+            if (next >= 1) {
+              mediaFullyExpandedRef.current = true;
+              setMediaFullyExpanded(true);
+              setShowContent(true);
+            }
+            return next;
+          });
           animFrameRef.current = requestAnimationFrame(decay);
         }
       };
@@ -226,7 +203,7 @@ const ScrollExpandMedia = ({
         <div className="relative w-full flex flex-col items-center h-[100dvh]">
           <div
             className="absolute inset-0 z-0 h-full"
-            style={{ filter: `blur(${scrollProgress * 10}px)` }}
+            style={{ filter: scrollProgress > 0 ? `blur(${scrollProgress * 10}px)` : 'none' }}
           >
             <Image src={bgImageSrc} alt="Background" width={1920} height={1080}
               className="h-screen" style={{ width: '100%', objectFit: 'cover', objectPosition: '20% center', display: 'block' }} priority />

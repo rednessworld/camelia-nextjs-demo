@@ -34,6 +34,7 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${cormorant.variable} ${dmSans.variable}`}
+      suppressHydrationWarning
     >
       <body className="min-h-screen antialiased overflow-x-hidden">
         <LanguageProvider>
