@@ -19,10 +19,13 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Camelia Art Café | Brunch & Specialty Coffee Barcelona",
-  description:
-    "Café artístico acogedor cerca de la Sagrada Família. Brunch, café de especialidad y repostería casera. Dos locales en el Eixample de Barcelona.",
-  keywords: ["brunch barcelona", "specialty coffee", "café eixample", "sagrada familia cafe"],
+  title: 'Camelia Art Café | Brunch & Specialty Coffee Barcelona',
+  description: 'Brunch & organic specialty coffee near Sagrada Família. Cozy artsy café with vintage décor, homemade pastries and artisan drinks. Eixample, Barcelona.',
+  icons: {
+    icon: '/images/logo.png',
+    shortcut: '/images/logo.png',
+    apple: '/images/logo.png',
+  },
 };
 
 export default function RootLayout({
