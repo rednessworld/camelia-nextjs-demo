@@ -51,6 +51,15 @@ const ScrollExpandMedia = ({
   const mediaFullyExpandedRef = useRef<boolean>(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
 
+  // Hard reset on mount — ensures no stale state from SSR or previous visit
+  useEffect(() => {
+    targetProgressRef.current = 0;
+    mediaFullyExpandedRef.current = false;
+    setScrollProgress(0);
+    setShowContent(false);
+    setMediaFullyExpanded(false);
+  }, []);
+
   // Keep ref in sync with state
   useEffect(() => {
     mediaFullyExpandedRef.current = mediaFullyExpanded;
@@ -207,9 +216,9 @@ const ScrollExpandMedia = ({
   }, []);
 
   const mediaWidth = isMobileState
-    ? Math.min(windowWidth * 0.88, 550) + scrollProgress * 300
-    : 450 + scrollProgress * 750;
-  const mediaHeight = isMobileState ? 480 + scrollProgress * 150 : 500 + scrollProgress * 175;
+    ? Math.min(windowWidth * 0.75, 320) + scrollProgress * 350
+    : 380 + scrollProgress * 750;
+  const mediaHeight = isMobileState ? 380 + scrollProgress * 200 : 460 + scrollProgress * 175;
 
   return (
     <div ref={sectionRef} className="transition-colors duration-700 ease-in-out" style={{ overflowX: 'hidden' }}>
@@ -217,13 +226,13 @@ const ScrollExpandMedia = ({
         <div className="relative w-full flex flex-col items-center h-[100dvh]">
           <div
             className="absolute inset-0 z-0 h-full"
-            style={{ filter: `blur(${scrollProgress * 12}px)` }}
+            style={{ filter: `blur(${scrollProgress * 10}px)` }}
           >
             <Image src={bgImageSrc} alt="Background" width={1920} height={1080}
               className="h-screen" style={{ width: '100%', objectFit: 'cover', objectPosition: '20% center', display: 'block' }} priority />
             <div
               className="absolute inset-0"
-              style={{ background: `rgba(0,0,0,${0.4 + scrollProgress * 0.3})` }}
+              style={{ background: `rgba(0,0,0,${scrollProgress * 0.7})` }}
             />
           </div>
 
